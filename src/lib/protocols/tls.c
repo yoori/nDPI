@@ -1313,11 +1313,16 @@ static int processTLSBlock(struct ndpi_detection_module_struct *ndpi_struct,
   printf("[TLS] Processing block %u\n", packet->payload[0]);
 #endif
 
+  if (packet->payload_packet_len < 1)
+  {
+    return -1;
+  }
+
   switch(packet->payload[0] /* block type */) {
   case 0x01: /* Client Hello */
     flow->protos.tls_quic.client_hello_processed = 1;
     flow->protos.tls_quic.ch_direction = packet->packet_direction;
-    processClientServerHello(ndpi_struct, flow, 0);
+    //processClientServerHello(ndpi_struct, flow, 0);
     ndpi_int_tls_add_connection(ndpi_struct, flow);
 
 #ifdef DEBUG_TLS
@@ -1331,7 +1336,7 @@ static int processTLSBlock(struct ndpi_detection_module_struct *ndpi_struct,
   case 0x02: /* Server Hello */
     flow->protos.tls_quic.server_hello_processed = 1;
     flow->protos.tls_quic.ch_direction = !packet->packet_direction;
-    processClientServerHello(ndpi_struct, flow, 0);
+    //processClientServerHello(ndpi_struct, flow, 0);
     ndpi_int_tls_add_connection(ndpi_struct, flow);
 
 #ifdef DEBUG_TLS
