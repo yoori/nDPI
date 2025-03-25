@@ -236,11 +236,13 @@ static u_int64_t fpc_dns_cache_key_from_packet(const unsigned char *ip, int ip_l
 
 /* *********************************************** */
 
-static u_int8_t ndpi_grab_dns_name(struct ndpi_packet_struct *packet,
-				   u_int *off /* payload offset */,
-				   char *_hostname, u_int max_len,
-				   u_int *_hostname_len,
-				   u_int8_t ignore_checks) {
+static u_int8_t ndpi_grab_dns_name(
+  struct ndpi_packet_struct *packet,
+  u_int *off /* payload offset */,
+  char *_hostname, u_int max_len,
+  u_int *_hostname_len,
+  u_int8_t ignore_checks)
+{
   u_int8_t hostname_is_valid = 1;
   u_int j = 0;
 
@@ -248,7 +250,8 @@ static u_int8_t ndpi_grab_dns_name(struct ndpi_packet_struct *packet,
 
   while((j < max_len)
 	&& ((*off) < packet->payload_packet_len)
-	&& (packet->payload[(*off)] != '\0')) {
+	&& (packet->payload[(*off)] != '\0'))
+  {
     u_int8_t c, cl = packet->payload[*off];
 
     if(((cl & 0xc0) != 0) || // we not support compressed names in query
@@ -262,7 +265,8 @@ static u_int8_t ndpi_grab_dns_name(struct ndpi_packet_struct *packet,
 
     if(j && (j < max_len)) _hostname[j++] = '.';
 
-    while((j < max_len) && (cl != 0)) {
+    while((j < max_len) && (cl != 0) && *off < packet->payload_packet_len)
+    {
       c = packet->payload[(*off)++];
 
       if(ignore_checks)
