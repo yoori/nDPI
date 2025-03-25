@@ -40,20 +40,23 @@ static void ndpi_search_oracle(struct ndpi_detection_module_struct *ndpi_struct,
   NDPI_LOG_DBG(ndpi_struct, "search ORACLE\n");
 
   /* For the time being, check only on default port since the logic is quite weak */
-  sport = ntohs(packet->tcp->source);
-  dport = ntohs(packet->tcp->dest);
+  if (packet && packet->tcp)
+  {
+    sport = ntohs(packet->tcp->source);
+    dport = ntohs(packet->tcp->dest);
 
-  /* Check for Connect Request */
-  if((dport == 1521 || sport == 1521) &&
-     packet->payload_packet_len >= 8 &&
-     ntohs(get_u_int16_t(packet->payload, 0)) == packet->payload_packet_len &&
-     packet->payload[2] == 0x00 && packet->payload[3] == 0x00 && /* Packet Checksum */
-     packet->payload[4] == 0x01 && /* Connect */
-     packet->payload[5] == 0x00 && /* Reserved */
-     packet->payload[6] == 0x00 && packet->payload[7] == 0x00 /* Header Checksum */) {
-    NDPI_LOG_INFO(ndpi_struct, "found oracle\n");
-    ndpi_int_oracle_add_connection(ndpi_struct, flow);
-    return;
+    /* Check for Connect Request */
+    if((dport == 1521 || sport == 1521) &&
+       packet->payload_packet_len >= 8 &&
+       ntohs(get_u_int16_t(packet->payload, 0)) == packet->payload_packet_len &&
+       packet->payload[2] == 0x00 && packet->payload[3] == 0x00 && /* Packet Checksum */
+       packet->payload[4] == 0x01 && /* Connect */
+       packet->payload[5] == 0x00 && /* Reserved */
+       packet->payload[6] == 0x00 && packet->payload[7] == 0x00 /* Header Checksum */) {
+      NDPI_LOG_INFO(ndpi_struct, "found oracle\n");
+      ndpi_int_oracle_add_connection(ndpi_struct, flow);
+      return;
+    }
   }
 
   NDPI_EXCLUDE_PROTO(ndpi_struct, flow);

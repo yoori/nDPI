@@ -1515,12 +1515,12 @@ static int may_be_gquic_rej(struct ndpi_detection_module_struct *ndpi_struct)
   void *ptr;
 
   /* Common case: msg from server default port */
-  if(packet->udp->source != ntohs(443))
+  if(packet->udp == 0 || packet->udp->source != ntohs(443))
     return 0;
   /* GQUIC. Common case: cid length 8, no version, packet number length 1 */
-  if(packet->payload[0] != 0x08)
-    return 0;
   if(packet->payload_packet_len < 1 + 8 + 1 + 12 /* Message auth hash */ + 16 /* Arbitrary length */)
+    return 0;
+  if(packet->payload[0] != 0x08)
     return 0;
   /* Search for "REJ" tag in the first 16 bytes after the hash */
   ptr = memchr(&packet->payload[1 + 8 + 1 + 12], 'R', 16 - 3);

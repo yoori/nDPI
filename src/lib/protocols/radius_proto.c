@@ -42,9 +42,12 @@ static void ndpi_check_radius(struct ndpi_detection_module_struct *ndpi_struct, 
   // const u_int8_t *packet_payload = packet->payload;
   u_int32_t payload_len = packet->payload_packet_len;
 
-  if((packet->udp->dest == htons(RADIUS_PORT) || packet->udp->source == htons(RADIUS_PORT) ||
-      packet->udp->dest == htons(RADIUS_PORT_ACC) || packet->udp->source == htons(RADIUS_PORT_ACC) ||
-      packet->udp->dest == htons(RADIUS_PORT_ACC_ALTERNATIVE) || packet->udp->source == htons(RADIUS_PORT_ACC_ALTERNATIVE))) {
+  if(packet->udp && (
+    packet->udp->dest == htons(RADIUS_PORT) || packet->udp->source == htons(RADIUS_PORT) ||
+    packet->udp->dest == htons(RADIUS_PORT_ACC) || packet->udp->source == htons(RADIUS_PORT_ACC) ||
+    packet->udp->dest == htons(RADIUS_PORT_ACC_ALTERNATIVE) ||
+    packet->udp->source == htons(RADIUS_PORT_ACC_ALTERNATIVE)))
+  {
     struct radius_header *h = (struct radius_header*)packet->payload;
     /* RFC2865: The minimum length is 20 and maximum length is 4096. */
     if((payload_len < 20) || (payload_len > 4096)) {
@@ -54,14 +57,17 @@ static void ndpi_check_radius(struct ndpi_detection_module_struct *ndpi_struct, 
     
     if((h->code > 0)
        && (h->code <= 13)
-       && (ntohs(h->len) == payload_len)) {
+       && (ntohs(h->len) == payload_len))
+    {
       NDPI_LOG_INFO(ndpi_struct, "Found radius\n");
       ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_RADIUS, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
       return;
     }
   }
+
   if(flow->packet_counter > 3)
     NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+
   return;
 }
 
